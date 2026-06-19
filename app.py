@@ -5,12 +5,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
 app.secret_key = 'petramonix_ozel_sifre_123'
 
-# Giriş ve kayıt işlemleri için hafif bir DB ayarı kalıyor
+# Kullanıcı giriş/kayıt ve bakiye işlemleri için hafif bir DB kalıyor
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///nexlyshop_auth.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# --- VERİTABANI MODELLERİ (Giriş Sistemi İçin) ---
+# --- VERİTABANI MODELLERİ (Giriş Sistemi) ---
 class Kullanici(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -20,8 +20,7 @@ class Kullanici(db.Model):
 with app.app_context():
     db.create_all()
 
-# --- SABİT ÜRÜN LİSTESİ (Veritabanına İhtiyaç Duymayan Canavar Sistem) ---
-# Ürünler direkt buradan okunacağı için artık asla kaybolmayacak!
+# --- SABİT ÜRÜN LİSTESİ (Asla Silinmeyen Güvenli Yapı) ---
 SABIT_URUNLER = [
     {"id": 1, "isim": "NEXLY LOGO", "aciklama": "Özel tasarım Nexly Mağaza Logosu", "fiyat": 15.0, "kategori": "tasarim", "resim": "nx.jpg"},
     {"id": 2, "isim": "PETRAMONIX REKLAM ALANI", "aciklama": "Sitede Premium reklam bandı alanı", "fiyat": 120.0, "kategori": "reklam", "resim": "nx_2.png"},
@@ -32,17 +31,23 @@ SABIT_URUNLER = [
     {"id": 7, "isim": "NEXLY APPS", "aciklama": "Mağazanıza entegre edilebilecek hazır modüller", "fiyat": 150.0, "kategori": "yazilim", "resim": "nx.jpg"}
 ]
 
-# --- SAYFA YÖNLENDİRMELERİ (ROUTES) ---
+# --- SAYFA YÖNLENDİRMELERİ ---
 @app.route('/')
 def index():
     kategori = request.args.get('kategori')
     if kategori:
-        # Seçilen kategoriye göre ürünleri filtrele
+        # Seçilen kategoriye göre filtrele
         urunler = [u for u in SABIT_URUNLER if u['kategori'] == kategori]
     else:
-        # Kategori seçilmediyse tüm ürünleri göster
+        # Kategori yoksa hepsini göster
         urunler = SABIT_URUNLER
-    return render_template('index.html', urunler=urunler)
+    
+    # Giriş yapmış kullanıcı varsa verilerini çek, yoksa None gönder
+    kullanici = None
+    if 'kullanici_id' in session:
+        kullanici = Kullanici.query.get(session['kullanici_id'])
+        
+    return render_template('index.html', urunler=urunler, kullanici=kullanici)
 
 @app.route('/kayit', methods=['GET', 'POST'])
 def kayit():
@@ -105,8 +110,6 @@ def satinal(urun_id):
         return redirect(url_for('giris'))
         
     kullanici = Kullanici.query.get(session['kullanici_id'])
-    
-    # Sabit listeden ürünü bul
     urun = next((u for u in SABIT_URUNLER if u['id'] == urun_id), None)
     
     if urun:
