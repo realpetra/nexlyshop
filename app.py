@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.secret_key = 'petramonix_ozel_sifre_123'
 
 # SQLite Veritabanı Ayarı
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///nexlyshop.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///nexlyshop_v2.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
