@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+import os
 
 app = Flask(__name__)
 app.secret_key = 'petramonix_ozel_sifre_123'
@@ -20,29 +21,35 @@ class Kullanici(db.Model):
 with app.app_context():
     db.create_all()
 
-# --- SABİT ÜRÜN LİSTESİ (Asla Silinmeyen Güvenli Yapı) ---
+# --- SADECE SENİN SİTENDEKİ GERÇEK 7 ÜRÜN (Hafızadan Çekilen Güvenli Sistem) ---
 SABIT_URUNLER = [
-    {"id": 1, "isim": "NEXLY LOGO", "aciklama": "Özel tasarım Nexly Mağaza Logosu", "fiyat": 15.0, "kategori": "tasarim", "resim": "nx.jpg"},
-    {"id": 2, "isim": "PETRAMONIX REKLAM ALANI", "aciklama": "Sitede Premium reklam bandı alanı", "fiyat": 120.0, "kategori": "reklam", "resim": "nx_2.png"},
-    {"id": 3, "isim": "NEXLY PREMIUM ROZET", "aciklama": "Profiliniz için parıl parıl Premium üye rozeti", "fiyat": 30.0, "kategori": "rozet", "resim": "nx.jpg"},
-    {"id": 4, "isim": "NEXLY GENERATION", "aciklama": "Gelişmiş altyapı ve kod desteği paketi", "fiyat": 250.0, "kategori": "yazilim", "resim": "nx_2.png"},
-    {"id": 5, "isim": "NEXLY V1 ALTYAPI", "aciklama": "E-ticaret siteleri için hazır taptaze Flask altyapısı", "fiyat": 450.0, "kategori": "yazilim", "resim": "nx.jpg"},
-    {"id": 6, "isim": "NEXLY PLUS ROZET", "aciklama": "Ekonomik ve şık Plus üye rozeti avantajları", "fiyat": 10.0, "kategori": "rozet", "resim": "nx_2.png"},
-    {"id": 7, "isim": "NEXLY APPS", "aciklama": "Mağazanıza entegre edilebilecek hazır modüller", "fiyat": 150.0, "kategori": "yazilim", "resim": "nx.jpg"}
+    {"id": 1, "isim": "🔮 SPOTIFY 4 AYLIK KOD PREMIUM", "fiyat": 15.00, "kategori": "yazilim", "aciklama": "Kendi kişisel hesabınızda kullanabileceğiniz, 4 aylık reklamsız müzik keyfi sunan premium kod.", "resim": "nx.jpg"},
+    {"id": 2, "isim": "⭐ Roblox Kaliteli Oynanmış Hesap", "fiyat": 45.00, "kategori": "oyun", "aciklama": "Roblox platformunda kaliteli ve önceden oynanmış, rastgele içerik garantili efsane hesap.", "resim": "nx_2.png"},
+    {"id": 3, "isim": "⭐ VALORANT MÜKEMMEL RANDOM HESAP", "fiyat": 150.00, "kategori": "oyun", "aciklama": "TR sunucusunda geçerli, yüksek skin çıkma oranına sahip mükemmel random hesap satışı.", "resim": "nx.jpg"},
+    {"id": 4, "isim": "⭐ DUOLINGO PREMIUM KENDİ HESABINIZA OTO", "fiyat": 30.00, "kategori": "yazilim", "aciklama": "Kendi şahsi Duolingo hesabınıza otomatik olarak tanımlanan sınırsız premium üyelik paketi.", "resim": "nx_2.png"},
+    {"id": 5, "isim": "✨ Sınırsız Gmail Açma Methodu [Güncel]", "fiyat": 30.00, "kategori": "method", "aciklama": "Telefon doğrulamasına takılmadan sınırsız şekilde yeni Gmail hesapları oluşturmanızı sağlayan güncel taktik.", "resim": "nx.jpg"},
+    {"id": 6, "isim": "✨ 2500+ VİRAL MOTİVASYON REELS...", "fiyat": 35.00, "kategori": "servis", "aciklama": "Telif hakkı içermeyen, YouTube, Instagram ve TikTok için paylaşıma hazır yüksek kaliteli dikey videolar.", "resim": "nx_2.png"},
+    {"id": 7, "isim": "✨ VALORANT MEGA METHOD PACK", "fiyat": 65.00, "kategori": "method", "aciklama": "Valorant oyuncuları ve satıcıları için özel olarak hazırlanan yöntem arşivi.", "resim": "nx.jpg"}
 ]
+
+# --- CSS ÇÖKMESİNİ ENGELLEYEN ÖZEL SUNUCU AYARI ---
+@app.route('/static/<path:filename>')
+def custom_static(filename):
+    response = send_from_directory(os.path.join(app.root_path, 'static'), filename)
+    if filename.endswith('.css'):
+        response.headers['Content-Type'] = 'text/css'
+    return response
 
 # --- SAYFA YÖNLENDİRMELERİ ---
 @app.route('/')
 def index():
     kategori = request.args.get('kategori')
     if kategori:
-        # Seçilen kategoriye göre filtrele
+        # Kategorileri senin HTML butonlarındaki ('oyun', 'yazilim', 'method', 'servis') yapıya göre filtreler
         urunler = [u for u in SABIT_URUNLER if u['kategori'] == kategori]
     else:
-        # Kategori yoksa hepsini göster
         urunler = SABIT_URUNLER
     
-    # Giriş yapmış kullanıcı varsa verilerini çek, yoksa None gönder
     kullanici = None
     if 'kullanici_id' in session:
         kullanici = Kullanici.query.get(session['kullanici_id'])
@@ -92,35 +99,25 @@ def cikis():
 @app.route('/bakiye-ekle', methods=['POST'])
 def bakiye_ekle():
     if 'kullanici_id' not in session:
-        flash('Önce giriş yapmalısın kanka!', 'danger')
         return redirect(url_for('giris'))
-    
     miktar = request.form.get('miktar', type=float)
     if miktar and miktar > 0:
         kullanici = Kullanici.query.get(session['kullanici_id'])
         kullanici.bakiye += miktar
         db.session.commit()
-        flash(f'{miktar} TL bakiyene eklendi!', 'success')
     return redirect(url_for('index'))
 
 @app.route('/satinal/<int:urun_id>', methods=['POST'])
 def satinal(urun_id):
     if 'kullanici_id' not in session:
-        flash('Ürün satın almak için önce giriş yapmalısın kanka!', 'danger')
         return redirect(url_for('giris'))
         
     kullanici = Kullanici.query.get(session['kullanici_id'])
     urun = next((u for u in SABIT_URUNLER if u['id'] == urun_id), None)
     
-    if urun:
-        if kullanici.bakiye >= urun['fiyat']:
-            kullanici.bakiye -= urun['fiyat']
-            db.session.commit()
-            flash(f"{urun['isim']} başarıyla satın alındı! Hayırlı olsun kanka.", 'success')
-        else:
-            flash('Bakiye yetersiz kanka! Lütfen önce bakiye yükle.', 'danger')
-    else:
-        flash('Ürün bulunamadı kanka!', 'danger')
+    if urun and kullanici.bakiye >= urun['fiyat']:
+        kullanici.bakiye -= urun['fiyat']
+        db.session.commit()
         
     return redirect(url_for('index'))
 
