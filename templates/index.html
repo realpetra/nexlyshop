@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexlyShop | Premium Dijital Mağaza</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div id="particles-js"></div>
+
+    <div id="announcement-banner" class="announcement-banner">
+        <span>🔥 <strong>Petramonix Duyuru:</strong> Ürünlerde geçerli %10 indirim için sepet ekranında <strong>NEXLY10</strong> kuponunu uygulayın!</span>
+        <button onclick="document.getElementById('announcement-banner').remove()">&times;</button>
+    </div>
+
+    <header class="main-header glass-effect">
+        <div class="logo-container">
+            <img src="/static/images/nx.jpg" alt="Logo" class="nav-logo" onerror="this.src='https://placehold.co/45'">
+            <div class="brand-text"><span>Nexly</span>Shop</div>
+        </div>
+        
+        <div class="search-wrapper glass-effect">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchBox" placeholder="Ürün ara..." oninput="liveSearch()">
+        </div>
+
+        <nav class="top-nav">
+            <a href="#"><i class="fa-solid fa-store"></i> Ürünler</a>
+            
+            <button class="icon-btn notification-trigger" onclick="toggleNotifications()">
+                <i class="fa-solid fa-bell"></i>
+                <span id="notif-badge" class="notif-badge">0</span>
+            </button>
+            <div id="notification-dropdown" class="notification-dropdown glass-effect">
+                <div class="notif-header">Bildirimler</div>
+                <div id="notif-body" class="notif-body">
+                    <p class="empty-state">Yeni bildirim yok.</p>
+                </div>
+            </div>
+
+            <button class="icon-btn" onclick="openCart()"><i class="fa-solid fa-cart-shopping"></i> <span id="cart-count">0</span></button>
+            <button id="auth-btn" class="login-link" onclick="handleAuthClick()"><i class="fa-solid fa-user"></i> Giriş Yap</button>
+            <button id="theme-toggle" class="theme-btn"><i class="fa-solid fa-moon"></i></button>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="filter-bar">
+            <button onclick="filterProducts('all', this)" class="active glass-effect">Tümü</button>
+            <button onclick="filterProducts('oyun', this)" class="glass-effect">Oyun & Hesap</button>
+            <button onclick="filterProducts('yazilim', this)" class="glass-effect">Yazılım & Eğitim</button>
+            <button onclick="filterProducts('method', this)" class="glass-effect">Özel Methodlar</button>
+        </section>
+
+        <section class="products-grid" id="productGrid"></section>
+
+        <section class="reviews-section animate-up" style="animation-delay: 0.4s;">
+            <h2>Müşterilerimiz Ne Diyor?</h2>
+            <p class="review-subtitle">Toplam 5 değerlendirme, Memnuniyet: 10/10</p>
+            <div class="reviews-grid">
+                <div class="review-card glass-effect">
+                    <div class="review-header">
+                        <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                        <span class="review-date">1 Haz 2026</span>
+                    </div>
+                    <p class="review-text">"Gerçekten hızlı ve güvenli teslim, Teşekkürler"</p>
+                    <span class="review-author">- ggLegendKnight4613</span>
+                </div>
+                <div class="review-card glass-effect">
+                    <div class="review-header">
+                        <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                        <span class="review-date">31 May 2026</span>
+                    </div>
+                    <p class="review-text">"cok fazla ilgilendi adamın dibi"</p>
+                    <span class="review-author">- gallpflex</span>
+                </div>
+                <div class="review-card glass-effect">
+                    <div class="review-header">
+                        <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                        <span class="review-date">27 May 2026</span>
+                    </div>
+                    <p class="review-text">"dakikasından geri dönüş aldım tebrik ederim"</p>
+                    <span class="review-author">- poyrazqwl</span>
+                </div>
+            </div>
+        </section>
+        
+        <footer class="main-footer glass-effect">
+            <div class="trust-badges">
+                <span><i class="fa-solid fa-headset text-accent"></i> 7/24 Destek</span>
+                <span><i class="fa-solid fa-bolt text-accent"></i> Anında Teslimat</span>
+                <span><i class="fa-solid fa-shield-halved text-accent"></i> Güvenli Ödeme</span>
+            </div>
+            <p>&copy; 2026 NexlyShop - Tüm Hakları Saklıdır. <span style="opacity:0.5; font-size:0.8rem; margin-left:10px;">Powered by Petramonix</span></p>
+        </footer>
+    </main>
+
+    <div id="quickViewModal" class="modal">
+        <div class="modal-content glass-effect" style="max-width: 600px; text-align: left;">
+            <span class="close" onclick="closeModal('quickViewModal')">&times;</span>
+            <h2 id="qv-title" style="color:var(--accent);">Ürün Adı</h2>
+            <p id="qv-desc" style="opacity:0.8; margin-bottom:15px;">Açıklama</p>
+            <h3 id="qv-price" class="price" style="margin: 10px 0;">0.00 TL</h3>
+            
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
+            <h3>Müşteri Yorumları (Canlı)</h3>
+            <div id="comments-container" style="max-height: 150px; overflow-y:auto; margin-bottom:15px;"></div>
+            
+            <div id="add-comment-box">
+                <h4>Yorum Yap</h4>
+                <div class="stars-rating" id="modal-stars" style="color:#ffb400; margin-bottom:10px; font-size:1.2rem; cursor:pointer;">
+                    <i class="fa-regular fa-star" onclick="setStar(1)"></i>
+                    <i class="fa-regular fa-star" onclick="setStar(2)"></i>
+                    <i class="fa-regular fa-star" onclick="setStar(3)"></i>
+                    <i class="fa-regular fa-star" onclick="setStar(4)"></i>
+                    <i class="fa-regular fa-star" onclick="setStar(5)"></i>
+                </div>
+                <textarea id="comment-text" placeholder="Yorumunuzu buraya yazın..." class="input-field glass-effect" style="height:60px; padding:10px; resize:none;"></textarea>
+                <button class="smooth-btn" style="width:100%; padding:10px;" onclick="submitComment()">Yorumu Gönder</button>
+            </div>
+            <br>
+            <button class="smooth-btn" style="width:100%;" onclick="addToCartFromModal()">Sepete Ekle</button>
+        </div>
+    </div>
+
+    <div id="authModal" class="modal">
+        <div class="modal-content glass-effect auth-box">
+            <span class="close" onclick="closeModal('authModal')">&times;</span>
+            <div class="auth-tabs" id="auth-tabs">
+                <button class="active glass-effect" id="tab-login-btn" onclick="switchAuthTab('login', this)">Giriş Yap</button>
+                <button class="glass-effect" id="tab-register-btn" onclick="switchAuthTab('register', this)">Kayıt Ol</button>
+            </div>
+            <div id="auth-login" class="auth-content active">
+                <h2>Tekrar Hoşgeldin!</h2>
+                <input type="text" id="login-username" placeholder="Kullanıcı Adı" class="input-field glass-effect">
+                <input type="password" id="login-password" placeholder="Şifre" class="input-field glass-effect">
+                <button class="smooth-btn" onclick="loginSystem()">Sisteme Giriş Yap</button>
+            </div>
+            <div id="auth-register" class="auth-content">
+                <h2>Aramıza Katıl</h2>
+                <input type="text" id="reg-username" placeholder="Kullanıcı Adı belirle" class="input-field glass-effect">
+                <input type="email" id="reg-email" placeholder="E-posta Adresi" class="input-field glass-effect">
+                <input type="password" id="reg-password" placeholder="Şifre belirle" class="input-field glass-effect">
+                <button class="smooth-btn" onclick="startVerification()">Devam Et <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+            <div id="auth-verify" class="auth-content">
+                <h2>E-posta Doğrulama</h2>
+                <p class="auth-note">Kodunuzu doğrulayın.</p>
+                <input type="text" id="verify-code" placeholder="----" class="input-field glass-effect" maxlength="4" style="text-align: center; font-size: 1.5rem;">
+                <button class="smooth-btn" onclick="verifyAndRegister()">Doğrula ve Kayıt Ol</button>
+                <button class="outline-btn" style="width: 100%; margin-top: 10px;" onclick="cancelVerification()">İptal Et</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboardModal" class="modal">
+        <div class="modal-content glass-effect dashboard-box" style="max-width: 500px; text-align: left;">
+            <span class="close" onclick="closeModal('dashboardModal')">&times;</span>
+            <div class="dash-header">
+                <div class="avatar-container">
+                    <div class="avatar" id="dash-avatar-box"><i class="fa-solid fa-user-astronaut"></i></div>
+                    <label class="change-avatar-btn" style="cursor:pointer;">
+                        <i class="fa-solid fa-camera"></i>
+                        <input type="file" id="fileAvatarInput" accept="image/*" style="display:none;" onchange="uploadRealAvatar()">
+                    </label>
+                </div>
+                <div class="user-info">
+                    <h2 id="dash-username">Kullanıcı Adı</h2>
+                    <span class="badge glass-effect" id="dash-rank">Bronz Üye</span>
+                    <span class="badge glass-effect" style="margin-left: 5px;"><i class="fa-solid fa-gem"></i> <span id="dash-points">0</span> Puan</span>
+                </div>
+            </div>
+            <div class="badges-wrapper" style="margin: 15px 0;">
+                <h4 style="margin-bottom: 5px;">Kazanılan Başarı Rozetleri</h4>
+                <div id="badges-container" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+            </div>
+            <div class="dash-tabs">
+                <button class="active glass-effect" onclick="switchDashTab('history', this)">Sipariş Geçmişi</button>
+            </div>
+            <div id="dash-history" class="dash-content active" style="max-height: 200px; overflow-y:auto;"></div>
+            <button class="outline-btn" style="width: 100%; margin-top: 20px;" onclick="logoutSystem()">Hesaptan Çıkış Yap</button>
+        </div>
+    </div>
+
+    <div id="adminModal" class="modal">
+        <div class="modal-content glass-effect" style="max-width: 550px; text-align: left;">
+            <span class="close" onclick="closeModal('adminModal')">&times;</span>
+            <h2>Petramonix Yönetim Paneli</h2>
+            <div class="admin-stats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0;">
+                <div class="glass-effect" style="padding:15px; border-radius:12px; text-align:center;">
+                    <i class="fa-solid fa-wallet" style="color:var(--accent); font-size:1.3rem;"></i>
+                    <h4 id="stat-revenue" style="margin:5px 0;">0.00 ₺</h4>
+                    <p style="font-size:0.75rem; margin:0; opacity:0.7;">Toplam Kazanç</p>
+                </div>
+                <div class="glass-effect" style="padding:15px; border-radius:12px; text-align:center;">
+                    <i class="fa-solid fa-cart-shopping" style="color:var(--accent); font-size:1.3rem;"></i>
+                    <h4 id="stat-sales" style="margin:5px 0;">0</h4>
+                    <p style="font-size:0.75rem; margin:0; opacity:0.7;">Toplam Satış</p>
+                </div>
+                <div class="glass-effect" style="padding:15px; border-radius:12px; text-align:center;">
+                    <i class="fa-solid fa-fire" style="color:var(--accent); font-size:1.3rem;"></i>
+                    <h4 id="stat-bestseller" style="margin:5px 0; font-size:0.9rem;">Yok</h4>
+                    <p style="font-size:0.75rem; margin:0; opacity:0.7;">En Çok Satan</p>
+                </div>
+            </div>
+            <h3>Müşteri Listesi</h3>
+            <div id="admin-user-list" style="max-height: 120px; overflow-y:auto; margin-bottom:20px;" class="dash-content active"></div>
+            <h3>Yeni Ürün Ekle</h3>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <input type="text" id="new-prod-name" placeholder="Ürün Adı" class="input-field glass-effect" style="margin:0; flex:2;">
+                <input type="number" id="new-prod-price" placeholder="Fiyat" class="input-field glass-effect" style="margin:0; flex:1;">
+                <select id="new-prod-cat" class="input-field glass-effect" style="margin:0; flex:1; background:var(--card-bg); color:var(--text-color);">
+                    <option value="oyun">Oyun</option>
+                    <option value="yazilim">Yazılım</option>
+                    <option value="method">Method</option>
+                </select>
+            </div>
+            <button class="smooth-btn" style="width: 100%; margin-bottom:20px;" onclick="adminAddProduct()">Vitrinde Yayınla</button>
+        </div>
+    </div>
+
+    <div id="cartSidebar" class="cart-sidebar glass-effect">
+        <div class="cart-header">
+            <h2>Sepetim</h2>
+            <span class="close-cart" onclick="closeCart()">&times;</span>
+        </div>
+        <div id="cart-items" class="cart-items"></div>
+        <div class="cart-footer">
+            <div style="display:flex; gap:5px; margin-bottom:15px;">
+                <input type="text" id="couponBox" placeholder="Kupon Kodu (NEXLY10)" class="input-field glass-effect" style="margin:0; padding:8px;">
+                <button class="smooth-btn" style="padding:0 15px; font-size:0.9rem;" onclick="applyCoupon()">Uygula</button>
+            </div>
+            <h3 id="discount-notify" style="color:#4CAF50; font-size:1rem; display:none; margin:5px 0;"></h3>
+            <h3>Toplam: <span id="cart-total">0.00</span> TL</h3>
+            <button onclick="checkoutSystem()" class="smooth-btn">Ödeme Yap (ItemSatış)</button>
+        </div>
+    </div>
+
+    <div class="chatbot-trigger glass-effect" onclick="toggleChat()">
+        <i class="fa-solid fa-robot"></i>
+        <span class="chat-online-dot"></span>
+    </div>
+    
+    <div id="chatbot-panel" class="chatbot-panel glass-effect">
+        <div class="chat-header">
+            <div class="chat-bot-identity">
+                <i class="fa-solid fa-robot" style="color: var(--accent);"></i>
+                <div>
+                    <strong>Nexly AI v2.5</strong>
+                    <span class="status-text">Çevrimiçi · Yardımcı</span>
+                </div>
+            </div>
+            <span class="close-chat-btn" onclick="toggleChat()"><i class="fa-solid fa-xmark"></i></span>
+        </div>
+        <div class="chat-body" id="chat-body">
+            <div class="bot-msg">Selam kanka! Ben güçlendirilmiş Nexly AI. 🤖<br><br>Sana nasıl yardımcı olabilirim? Bütçeni söylersen ürün önerebilirim, sepetini yorumlayabilirim veya sana özel sürpriz bir kupon kodu fırlatabilirim!</div>
+        </div>
+        <div class="chat-footer">
+            <input type="text" id="chat-input" placeholder="Bütçeni yaz veya soru sor..." onkeypress="handleChatPress(event)">
+            <button onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast glass-effect"><i class="fa-solid fa-check"></i> <span id="toast-msg">İşlem başarılı!</span></div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="/static/script.js"></script>
+</body>
+</html>
