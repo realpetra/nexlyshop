@@ -5,52 +5,43 @@ from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
 app.secret_key = 'petramonix_ozel_sifre_123'
 
-# SQLite Veritabanı Ayarı
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///nexlyshop_v2.db'
+# Giriş ve kayıt işlemleri için hafif bir DB ayarı kalıyor
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///nexlyshop_auth.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# --- VERİTABANI MODELLERİ ---
+# --- VERİTABANI MODELLERİ (Giriş Sistemi İçin) ---
 class Kullanici(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
     bakiye = db.Column(db.Float, default=0.0)
 
-class Urun(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    isim = db.Column(db.String(100), nullable=False)
-    aciklama = db.Column(db.Text, nullable=False)
-    fiyat = db.Column(db.Float, nullable=False)
-    kategori = db.Column(db.String(50), nullable=False)
-    resim = db.Column(db.String(200), nullable=False)
-
-# Veritabanını Oluşturma ve Otomatik Ürün Ekleme Bölümü
 with app.app_context():
     db.create_all()
-    
-    # Eğer veritabanında hiç ürün yoksa, senin 7 ürününü otomatik yükle
-    if not Urun.query.first():
-        ornek_urunler = [
-            Urun(isim="NEXLY LOGO", aciklama="Özel tasarım Nexly Mağaza Logosu", fiyat=15.0, kategori="tasarim", resim="nx.jpg"),
-            Urun(isim="PETRAMONIX REKLAM ALANI", aciklama="Sitede Premium reklam bandı alanı", fiyat=120.0, kategori="reklam", resim="nx_2.png"),
-            Urun(isim="NEXLY PREMIUM ROZET", aciklama="Profiliniz için parıl parıl Premium üye rozeti", fiyat=30.0, kategori="rozet", resim="nx.jpg"),
-            Urun(isim="NEXLY GENERATION", aciklama="Gelişmiş altyapı ve kod desteği paketi", fiyat=250.0, kategori="yazilim", resim="nx_2.png"),
-            Urun(isim="NEXLY V1 ALTYAPI", aciklama="E-ticaret siteleri için hazır taptaze Flask altyapısı", fiyat=450.0, kategori="yazilim", resim="nx.jpg"),
-            Urun(isim="NEXLY PLUS ROZET", aciklama="Ekonomik ve şık Plus üye rozeti avantajları", fiyat=10.0, kategori="rozet", resim="nx_2.png"),
-            Urun(isim="NEXLY APPS", aciklama="Mağazanıza entegre edilebilecek hazır modüller", fiyat=150.0, kategori="yazilim", resim="nx.jpg")
-        ]
-        db.session.bulk_save_objects(ornek_urunler)
-        db.session.commit()
+
+# --- SABİT ÜRÜN LİSTESİ (Veritabanına İhtiyaç Duymayan Canavar Sistem) ---
+# Ürünler direkt buradan okunacağı için artık asla kaybolmayacak!
+SABIT_URUNLER = [
+    {"id": 1, "isim": "NEXLY LOGO", "aciklama": "Özel tasarım Nexly Mağaza Logosu", "fiyat": 15.0, "kategori": "tasarim", "resim": "nx.jpg"},
+    {"id": 2, "isim": "PETRAMONIX REKLAM ALANI", "aciklama": "Sitede Premium reklam bandı alanı", "fiyat": 120.0, "kategori": "reklam", "resim": "nx_2.png"},
+    {"id": 3, "isim": "NEXLY PREMIUM ROZET", "aciklama": "Profiliniz için parıl parıl Premium üye rozeti", "fiyat": 30.0, "kategori": "rozet", "resim": "nx.jpg"},
+    {"id": 4, "isim": "NEXLY GENERATION", "aciklama": "Gelişmiş altyapı ve kod desteği paketi", "fiyat": 250.0, "kategori": "yazilim", "resim": "nx_2.png"},
+    {"id": 5, "isim": "NEXLY V1 ALTYAPI", "aciklama": "E-ticaret siteleri için hazır taptaze Flask altyapısı", "fiyat": 450.0, "kategori": "yazilim", "resim": "nx.jpg"},
+    {"id": 6, "isim": "NEXLY PLUS ROZET", "aciklama": "Ekonomik ve şık Plus üye rozeti avantajları", "fiyat": 10.0, "kategori": "rozet", "resim": "nx_2.png"},
+    {"id": 7, "isim": "NEXLY APPS", "aciklama": "Mağazanıza entegre edilebilecek hazır modüller", "fiyat": 150.0, "kategori": "yazilim", "resim": "nx.jpg"}
+]
 
 # --- SAYFA YÖNLENDİRMELERİ (ROUTES) ---
 @app.route('/')
 def index():
     kategori = request.args.get('kategori')
     if kategori:
-        urunler = Urun.query.filter_by(kategori=kategori).all()
+        # Seçilen kategoriye göre ürünleri filtrele
+        urunler = [u for u in SABIT_URUNLER if u['kategori'] == kategori]
     else:
-        urunler = Urun.query.all()
+        # Kategori seçilmediyse tüm ürünleri göster
+        urunler = SABIT_URUNLER
     return render_template('index.html', urunler=urunler)
 
 @app.route('/kayit', methods=['GET', 'POST'])
@@ -114,14 +105,19 @@ def satinal(urun_id):
         return redirect(url_for('giris'))
         
     kullanici = Kullanici.query.get(session['kullanici_id'])
-    urun = Urun.query.get_or_400(urun_id)
     
-    if kullanici.bakiye >= urun.fiyat:
-        kullanici.bakiye -= urun.fiyat
-        db.session.commit()
-        flash(f'{urun.isim} başarıyla satın alındı! Hayırlı olsun kanka.', 'success')
+    # Sabit listeden ürünü bul
+    urun = next((u for u in SABIT_URUNLER if u['id'] == urun_id), None)
+    
+    if urun:
+        if kullanici.bakiye >= urun['fiyat']:
+            kullanici.bakiye -= urun['fiyat']
+            db.session.commit()
+            flash(f"{urun['isim']} başarıyla satın alındı! Hayırlı olsun kanka.", 'success')
+        else:
+            flash('Bakiye yetersiz kanka! Lütfen önce bakiye yükle.', 'danger')
     else:
-        flash('Bakiye yetersiz kanka! Lütfen önce bakiye yükle.', 'danger')
+        flash('Ürün bulunamadı kanka!', 'danger')
         
     return redirect(url_for('index'))
 
